@@ -1,0 +1,12 @@
+{
+  "apps" : [
+    {
+      "script": "yarn run frontend",
+      "watch": true
+    },
+    {
+      "script": "yarn run backend --env=.env",
+      "watch": true
+    }
+  ]
+}
