@@ -2,3 +2,9 @@
     margin-right: 10px;
     color: var(--accent);
 }
+
+.tinyInput {
+    width: 10%;
+    margin-left: 10px;
+    margin-right: 10px;
+}

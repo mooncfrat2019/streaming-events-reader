@@ -21,7 +21,7 @@ export interface Rules { code: number, rules: Rule[]}
 interface RulesSetterProps extends AuthResult { rule: Rule }
 
 type Authorize = (props: Credintails) => Promise<AuthResult>
-type EventsGetter = (props: Setups) => Promise<any>
+export type EventsGetter = (props: Setups) => Promise<any>
 type RulesGetter = (props: AuthResult) => Promise<Rules>
 type RuleRemover = (props: RemoveRuleProps) => Promise<any>
 type RulesSetter = (props: RulesSetterProps) => Promise<any>

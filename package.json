@@ -24,6 +24,7 @@
     "@vkontakte/vkui": "^4.31.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
+    "interweave": "^13.0.0",
     "json-schema-to-typescript": "^10.1.5",
     "koa": "^2.13.4",
     "koa-body": "^5.0.0",

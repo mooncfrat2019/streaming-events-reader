@@ -1,7 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {
+    Avatar,
     Button,
+    Card,
+    CardScroll,
     Cell,
+    Counter,
     FormItem,
     FormLayout,
     FormLayoutGroup,
@@ -9,13 +13,17 @@ import {
     Header,
     IconButton,
     Input,
-    Placeholder
+    Placeholder,
+    Separator,
+    SubnavigationButton,
+    Title
 } from "@vkontakte/vkui";
 import {Utils} from "../service/utils";
 import axios from "axios";
-import {AuthResult, Rule, Rules} from "../../../../backend/service/router";
-import {Icon24CancelOutline, Icon56MoonOutline} from "@vkontakte/icons";
+import {AuthResult, EventsGetter, Rule, Rules} from "../../../../backend/service/router";
+import {Icon16ChevronLeft, Icon16ChevronOutline, Icon24CancelOutline, Icon56MoonOutline} from "@vkontakte/icons";
 import styles from './Dashboard.module.css';
+import {Interweave} from "interweave";
 
 type getRulesFunc = (props: AuthResult) => Promise<Rules>
 type removeRuleFunc = (props: DeleteRuleProps) => Promise<Rules>
@@ -28,15 +36,17 @@ const Dashboard = () => {
     const [needAuth, setNeedAuth] = useState(false);
     const [needUpdate, setNeedUpdate] = useState(false);
     const [token, setToken] = useState('');
-    const [cred, setCred] = useState<AuthResult>({ endpoint: '', key: '' })
+    const [cred, setCred] = useState<AuthResult>({ endpoint: '', key: '' });
     const [rules, setRules] = useState<Rule[]|null>(null);
-    const [newRule, setNewRule] = useState<Rule>({ tag: 'vk', value: 'vk' })
+    const [newRule, setNewRule] = useState<Rule>({ tag: 'vk', value: 'vk' });
+    const [currentOffset, setCurrentOffset] = useState(0);
+    const [currentLimit] = useState(100);
+    const [fetchedEvents, setFetchedEvents] = useState<Array<any>|null>(null)
     const { host } = new Utils;
     const url = host();
     const headers = {
         'Content-Type': 'application/json',
     }
-
 
     const authorize = async () => {
         const { data } = await axios.get(`${url}/authorize?service_token=${token}`);
@@ -58,6 +68,21 @@ const Dashboard = () => {
         const { data } = await axios.get(`${url}/getRules?endpoint=${endpoint}&key=${key}&tag=${tag}`);
         return data;
     }
+
+    const getAllEvents: EventsGetter = async ({ limit, offset }) => {
+        const { data } = await axios.get(`${url}/getAllEvents?limit=${limit}&offset=${offset}`);
+        return data;
+    }
+
+    useEffect(() => {
+        getAllEvents({ limit: 100, offset: currentOffset })
+            .then((data) => {
+                setFetchedEvents(data);
+            })
+            .catch((e) => {
+                console.error(e);
+            })
+    }, [currentOffset])
 
     useEffect(() => {
         console.log('host', host());
@@ -151,6 +176,48 @@ const Dashboard = () => {
                 </React.Fragment>
             }
         </Group>
+        <Group>
+            <Header>
+                Записанные события
+            </Header>
+            <FormLayoutGroup mode="horizontal">
+                <SubnavigationButton disabled={!currentOffset} onClick={() => setCurrentOffset((prev) => prev - currentLimit)}><Icon16ChevronLeft/></SubnavigationButton>
+                <Input value={fetchedEvents?.length} disabled={true} className={styles.tinyInput} />
+                <SubnavigationButton disabled={!!fetchedEvents && fetchedEvents?.length < currentLimit} onClick={() => setCurrentOffset((prev) => prev + currentLimit)}><Icon16ChevronOutline/></SubnavigationButton>
+            </FormLayoutGroup>
+        </Group>
+        {(fetchedEvents && fetchedEvents.length) ? <Group>
+            {fetchedEvents.map((item) => <>
+                <Cell
+                before={<Avatar><Counter>{item.id}</Counter></Avatar>}
+                disabled multiline key={item.id}>
+                    <Title level={'3'}>{item.event.event.event_type}</Title>
+                    <br/>
+                    <br/>
+                    <Interweave content={item.event.event.text} />
+                    <br/>
+                    <br/>
+                    <a href={item.event.event.event_url} target={'_blank'}>Источник</a>
+                    <br/>
+                    <br/>
+                    {item.event.event?.attachments && item.event.event?.attachments.length ?
+                        <CardScroll size="s">{
+                            item.event.event?.attachments.map((attach: any) => {
+                                if (attach.type === 'photo') {
+                                    return <Card>
+                                        <div style={{
+                                            paddingBottom: "66%",
+                                            backgroundImage: `url(${attach.photo.photo_604})`
+                                        }}/>
+                                    </Card>
+                                }
+                            })
+                        }</CardScroll>
+                        : null}
+                </Cell>
+                <Separator/>
+            </>)}
+        </Group> : null}
     </React.Fragment>)
 }
 
