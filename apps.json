@@ -1,12 +1,23 @@
 {
   "apps" : [
     {
+      "name": "Streaming-manager Frontend",
       "script": "yarn run frontend",
+      "watch": true,
+      "env": {
+        "BACKEND_PORT": 6000,
+        "BACKEND_HOST": "localhost"
+      }
+    },
+    {
+      "name": "Streaming-manager backend",
+      "script": "yarn run backend --env=.env",
       "watch": true
     },
     {
-      "script": "yarn run backend --env=.env",
-      "watch": true
+      "name": "Streaming-manager backend worker",
+      "script": "yarn run background --env=.env",
+      "watch": false
     }
   ]
 }

@@ -11,7 +11,8 @@
   "scripts": {
     "frontend": "next ./frontend",
     "backend": "node --experimental-specifier-resolution=node --loader ts-node/esm backend/index.ts",
-    "start": "pm2 start apps.json"
+    "background": "node --experimental-specifier-resolution=node --loader ts-node/esm backend/background/worker.ts ",
+    "start": "pm2 start ecosystem.config.js"
   },
   "dependencies": {
     "@types/koa": "^2.13.4",
@@ -21,6 +22,8 @@
     "@vkontakte/vk-bridge": "^2.6.1",
     "@vkontakte/vkjs": "^0.22.2",
     "@vkontakte/vkui": "^4.31.0",
+    "axios": "^0.27.2",
+    "dotenv": "^16.0.1",
     "json-schema-to-typescript": "^10.1.5",
     "koa": "^2.13.4",
     "koa-body": "^5.0.0",

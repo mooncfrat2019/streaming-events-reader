@@ -64,22 +64,25 @@ export const router = () => {
     App.use(KOABody())
     App.use(async (ctx) => {
         const { path } = Utils;
-        const [first] = path(ctx.request.path);
+        const [first, second] = path(ctx.request.path);
         const { limit, offset, service_token, endpoint, key } = ctx.request.query;
         const body = (ctx.request?.body) ? ctx.request.body : {};
         const { rule } = body;
 
-        console.log({ limit, offset, service_token, endpoint, key, rule })
+        console.log({ limit, offset, service_token, endpoint, key, rule });
 
-        if (Router[first]) {
-            return ctx.body = await Router[first]({
-                limit: Number(limit),
-                offset: Number(offset),
-                service_token, endpoint, key, rule
-            });
-            // console.log('ctx.body');
-            // console.log(ctx.body);
+        if (first === 'backend') {
+            if (Router[second]) {
+                return ctx.body = await Router[second]({
+                    limit: Number(limit),
+                    offset: Number(offset),
+                    service_token, endpoint, key, rule
+                });
+                // console.log('ctx.body');
+                // console.log(ctx.body);
+            }
         }
+
 
         return new CustomError({ numberOfError: 1 }).ersponse(ctx)
 

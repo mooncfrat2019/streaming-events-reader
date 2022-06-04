@@ -1,4 +1,5 @@
 import {NAVI} from "../constants/navigation";
+import {config} from "./config";
 
 export class Utils {
 
@@ -12,6 +13,13 @@ export class Utils {
         } else {
             return 'unknown';
         }
+    }
 
+    host(): string {
+        console.log(process.env)
+        if (config.BACKEND_HOST === 'localhost') {
+            return `http://localhost`
+        }
+        return `https://${config.BACKEND_HOST}`
     }
 }

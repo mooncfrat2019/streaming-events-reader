@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "baseUrl": "./frontend",
-    "outDir": "./",
+    "outDir": "./frontend",
     "lib": ["dom", "dom.iterable", "esnext"],
     "paths": {
       "@vkontakte/*" : ["../../node_modules/@vkontakte/*"],

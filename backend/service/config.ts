@@ -1,3 +1,7 @@
+import env from 'dotenv';
+
+env.config();
+
 export const config = {
     PORT: process.env.BACKEND_PORT,
     INSTANCES: process.env.INSTANCES,
