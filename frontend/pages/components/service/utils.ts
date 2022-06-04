@@ -16,9 +16,8 @@ export class Utils {
     }
 
     host(): string {
-        console.log(process.env)
-        if (config.BACKEND_HOST === 'localhost') {
-            return `http://localhost`
+        if (config.BACKEND_HOST?.startsWith('local')) {
+            return `http://${config.BACKEND_HOST}`
         }
         return `https://${config.BACKEND_HOST}`
     }

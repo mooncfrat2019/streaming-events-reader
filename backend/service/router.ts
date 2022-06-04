@@ -12,16 +12,18 @@ export interface Rule { tag: string, value: string }
 
 export type Context = Application.ParameterizedContext<Application.DefaultState, Application.DefaultContext, any>;
 
-interface AuthResult { endpoint: string, key: string }
+export interface AuthResult { endpoint: string, key: string }
+export interface RemoveRuleProps  extends AuthResult { tag: Rule['tag'] }
 
 interface Credintails { service_token: string }
 interface Setups { limit: number, offset: number }
-interface Rules { code: number, rules: Rule[]}
+export interface Rules { code: number, rules: Rule[]}
 interface RulesSetterProps extends AuthResult { rule: Rule }
 
 type Authorize = (props: Credintails) => Promise<AuthResult>
 type EventsGetter = (props: Setups) => Promise<any>
 type RulesGetter = (props: AuthResult) => Promise<Rules>
+type RuleRemover = (props: RemoveRuleProps) => Promise<any>
 type RulesSetter = (props: RulesSetterProps) => Promise<any>
 
 export interface GenericObject {
@@ -32,6 +34,8 @@ interface Router extends GenericObject {
     authorize: Authorize,
     getAllEvents: EventsGetter,
     getRules: RulesGetter,
+    removeRule: RuleRemover,
+    removeAllRules: RulesSetter,
     postRule: RulesSetter,
 }
 
@@ -51,6 +55,8 @@ const Router: Router = {
        return await VKStreamingAPI.authWithToken((service_token.length) ? service_token : config.SERVICE_KEY);
     },
     getRules: async ({ endpoint, key }) => await VKStreamingAPI.getRules(endpoint, key),
+    removeRule: async ({ endpoint, key, tag }) => await VKStreamingAPI.deleteRule(endpoint, key, tag),
+    removeAllRules: async ({ endpoint, key }) => await VKStreamingAPI.flushRules(endpoint, key),
     postRule: async ({ endpoint, key , rule}) => await VKStreamingAPI
         .postRule(...Object.entries({ endpoint, key , rule }).map(([key, value]) => {
             if (key === 'rule') {
