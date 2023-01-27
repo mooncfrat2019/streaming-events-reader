@@ -38,6 +38,7 @@ const Dashboard = () => {
     const [token, setToken] = useState('');
     const [cred, setCred] = useState<AuthResult>({ endpoint: '', key: '' });
     const [rules, setRules] = useState<Rule[]|null>(null);
+    const [needRulesUpdate, setNeedRulesUpdate] = useState<boolean>(false);
     const [newRule, setNewRule] = useState<Rule>({ tag: 'vk', value: 'vk' });
     const [currentOffset, setCurrentOffset] = useState(0);
     const [currentLimit] = useState(100);
@@ -69,6 +70,7 @@ const Dashboard = () => {
     const removeRule: removeRuleFunc = async ({ endpoint, key, tag }) => {
         const { data } = await axios.get(`${url}/backend/removeRule?endpoint=${endpoint}&key=${key}&tag=${tag}`);
         console.log('removeRule', data);
+        setNeedRulesUpdate(true);
         return data;
     }
 
@@ -104,6 +106,7 @@ const Dashboard = () => {
         if (cred?.endpoint && cred.endpoint.length || (cred?.endpoint && cred.endpoint.length && needUpdate)) {
             console.log('cred indefined', cred);
             setNeedUpdate(false);
+            setNeedRulesUpdate(false);
             console.log('TRYYING FETCH RULES');
             getRules(cred)
                 .then((response) => {
@@ -117,7 +120,7 @@ const Dashboard = () => {
                     console.error(e)
                 })
         }
-    }, [cred, needUpdate])
+    }, [cred, needUpdate, needRulesUpdate])
 
     return (<React.Fragment>
         <Group>
@@ -157,15 +160,12 @@ const Dashboard = () => {
             <Header>
                 Текущее состояние
             </Header>
-            {(!rules) ?
-                <Placeholder icon={<Icon56MoonOutline/>}>
-                Нет текущих правил для сбора событий
-                </Placeholder> :
+            {((rules && Array.isArray(rules) && rules.length)) ?
                 <React.Fragment>
                     <Header mode={'secondary'}>
                         Правила
                     </Header>
-                    {rules.map((rule) => {
+                    {(rules && rules.length) ? rules.map((rule) => {
                         return <Cell
                             disabled={true}
                             after={<IconButton onClick={() => removeRule({ ...cred, tag: rule.tag})}>
@@ -177,8 +177,10 @@ const Dashboard = () => {
                         </a>}>
                             {rule.value}
                         </Cell>
-                    })}
-                </React.Fragment>
+                    }) : null}
+                </React.Fragment> : <Placeholder icon={<Icon56MoonOutline/>}>
+                    Нет текущих правил для сбора событий
+                </Placeholder>
             }
         </Group>
         <Group>

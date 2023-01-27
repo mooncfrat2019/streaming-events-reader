@@ -7,7 +7,6 @@ import {DATA} from "./db";
 // @ts-ignore
 import { VKStreamingAPI } from 'vkflow';
 import {config} from "./config";
-import axios from "axios";
 
 export interface Rule { tag: string, value: string }
 
@@ -45,9 +44,6 @@ interface StreamingEvent {
     event: JSON,
 }
 
-const headers = {
-    'Content-Type': 'application/json',
-}
 
 const Router: Router = {
     test: () => "test",
@@ -65,10 +61,12 @@ const Router: Router = {
     },
     getRules: async ({ endpoint, key }) => await VKStreamingAPI.getRules(endpoint, key),
     removeRule: async ({ endpoint, key, tag }) => {
-        // return await VKStreamingAPI.deleteRule(endpoint, key, tag);
-        const { data } = await axios.delete(`https://${endpoint}/rules?key=${key}`,{headers, data: {tag}});
-        console.log('removeRule', data);
-        return data;
+        console.log('removeRule tag', tag);
+        return await VKStreamingAPI.deleteRule(endpoint, key, {tag});
+        // const { data } = await axios.delete(`https://${endpoint}/rules?key=${key}`,{headers, data: { tag: tag }});
+        // console.log('removeRule tag', tag);
+        // console.log('removeRule', data);
+        // return data;
     },
     removeAllRules: async ({ endpoint, key }) => await VKStreamingAPI.flushRules(endpoint, key),
     postRule: async ({ endpoint, key , rule}) => await VKStreamingAPI
@@ -85,18 +83,18 @@ export const router = () => {
     App.use(async (ctx) => {
         const { path } = Utils;
         const [first, second] = path(ctx.request.path);
-        const { limit, offset, service_token, endpoint, key } = ctx.request.query;
+        const { limit, offset, service_token, endpoint, key, tag } = ctx.request.query;
         const body = (ctx.request?.body) ? ctx.request.body : {};
         const { rule } = body;
 
-        console.log({ limit, offset, service_token, endpoint, key, rule });
+        console.log({ limit, offset, service_token, endpoint, key, rule, tag });
         try {
             if (first === 'backend') {
                 if (Router[second]) {
                     return ctx.body = await Router[second]({
                         limit: Number(limit),
                         offset: Number(offset),
-                        service_token, endpoint, key, rule
+                        service_token, endpoint, key, rule, tag
                     });
                 }
             }
