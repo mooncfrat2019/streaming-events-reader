@@ -44,33 +44,36 @@ const Dashboard = () => {
     const [fetchedEvents, setFetchedEvents] = useState<Array<any>|null>(null)
     const { host } = new Utils;
     const url = host();
+
     const headers = {
         'Content-Type': 'application/json',
     }
 
     const authorize = async () => {
-        const { data } = await axios.get(`${url}/authorize?service_token=${token}`);
+        const { data } = await axios.get(`${url}/backend/authorize?service_token=${token}`);
+        console.log('authorize data', data)
         return data;
-    }
+    };
 
     const getRules: getRulesFunc = async ({ endpoint, key }) => {
-        const { data } = await axios.get(`${url}/getRules?service_token=${token}&endpoint=${endpoint}&key=${key}`);
+        const { data } = await axios.get(`${url}/backend/getRules?service_token=${token}&endpoint=${endpoint}&key=${key}`);
         return data;
     }
 
     const addRules = async ({ endpoint, key }: AuthResult) => {
-        const { data } = await axios.post(`${url}/postRule?&endpoint=${endpoint}&key=${key}`,
+        const { data } = await axios.post(`${url}/backend/postRule?&endpoint=${endpoint}&key=${key}`,
             { rule: newRule }, { headers });
         return data;
     }
 
     const removeRule: removeRuleFunc = async ({ endpoint, key, tag }) => {
-        const { data } = await axios.get(`${url}/getRules?endpoint=${endpoint}&key=${key}&tag=${tag}`);
+        const { data } = await axios.get(`${url}/backend/removeRule?endpoint=${endpoint}&key=${key}&tag=${tag}`);
+        console.log('removeRule', data);
         return data;
     }
 
     const getAllEvents: EventsGetter = async ({ limit, offset }) => {
-        const { data } = await axios.get(`${url}/getAllEvents?limit=${limit}&offset=${offset}`);
+        const { data } = await axios.get(`${url}/backend/getAllEvents?limit=${limit}&offset=${offset}`);
         return data;
     }
 
@@ -87,19 +90,21 @@ const Dashboard = () => {
     useEffect(() => {
         console.log('host', host());
         if (needAuth) {
+            console.log('MAKE AUTH');
             setNeedAuth(false)
             authorize()
                 .then((result) => setCred(result))
-                .catch((error) => console.error(error))
+                .catch((error) => console.error('authorize error', error));
         }
     }, [needAuth]);
 
     useEffect(() => {
         console.log('cred', cred);
 
-        if (cred.endpoint.length || (cred.endpoint.length && needUpdate)) {
+        if (cred?.endpoint && cred.endpoint.length || (cred?.endpoint && cred.endpoint.length && needUpdate)) {
+            console.log('cred indefined', cred);
             setNeedUpdate(false);
-            console.log('TRYYING FETCH RULES')
+            console.log('TRYYING FETCH RULES');
             getRules(cred)
                 .then((response) => {
                     console.log('response', response);

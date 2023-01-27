@@ -1,6 +1,9 @@
 import {App} from "./app";
+// @ts-ignore
+import cors from '@koa/cors';
 
 export const logger = () => {
+    App.use(cors());
     App.use(async (ctx, next) => {
         await next();
         const rt = ctx.response.get('X-Response-Time');

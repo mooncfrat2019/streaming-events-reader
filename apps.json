@@ -5,7 +5,7 @@
       "script": "yarn run frontend",
       "watch": true,
       "env": {
-        "BACKEND_PORT": 6000,
+        "BACKEND_PORT": 6001,
         "BACKEND_HOST": "localhost"
       }
     },

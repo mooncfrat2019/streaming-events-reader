@@ -16,8 +16,8 @@ export class Utils {
     }
 
     host(): string {
-        if (config.BACKEND_HOST?.startsWith('local')) {
-            return `http://${config.BACKEND_HOST}`
+        if (config.BACKEND_HOST?.startsWith('local') && config.BACKEND_PORT && config.BACKEND_PORT.length) {
+            return `http://${config.BACKEND_HOST}:${config.BACKEND_PORT}`
         }
         return `https://${config.BACKEND_HOST}`
     }

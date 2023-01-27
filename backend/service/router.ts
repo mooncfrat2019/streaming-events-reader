@@ -7,6 +7,7 @@ import {DATA} from "./db";
 // @ts-ignore
 import { VKStreamingAPI } from 'vkflow';
 import {config} from "./config";
+import axios from "axios";
 
 export interface Rule { tag: string, value: string }
 
@@ -20,7 +21,7 @@ interface Setups { limit: number, offset: number }
 export interface Rules { code: number, rules: Rule[]}
 interface RulesSetterProps extends AuthResult { rule: Rule }
 
-type Authorize = (props: Credintails) => Promise<AuthResult>
+type Authorize = (props: Credintails) => Promise<AuthResult|string>
 export type EventsGetter = (props: Setups) => Promise<any>
 type RulesGetter = (props: AuthResult) => Promise<Rules>
 type RuleRemover = (props: RemoveRuleProps) => Promise<any>
@@ -44,6 +45,10 @@ interface StreamingEvent {
     event: JSON,
 }
 
+const headers = {
+    'Content-Type': 'application/json',
+}
+
 const Router: Router = {
     test: () => "test",
     getAllEvents: async ({ limit, offset }: { limit: number, offset: number }) => {
@@ -52,10 +57,19 @@ const Router: Router = {
         return evnets.map((evnt: StreamingEvent) => ({ id: evnt.id, event: JSON.parse(evnt.event) }));
     },
     authorize: async ({ service_token }) => {
+        // return service_token
        return await VKStreamingAPI.authWithToken((service_token.length) ? service_token : config.SERVICE_KEY);
+       //  const { data } = await axios.get(`${url}/authorize?service_token=${service_token}`);
+       //  console.log('data', data)
+       //  return data;
     },
     getRules: async ({ endpoint, key }) => await VKStreamingAPI.getRules(endpoint, key),
-    removeRule: async ({ endpoint, key, tag }) => await VKStreamingAPI.deleteRule(endpoint, key, tag),
+    removeRule: async ({ endpoint, key, tag }) => {
+        // return await VKStreamingAPI.deleteRule(endpoint, key, tag);
+        const { data } = await axios.delete(`https://${endpoint}/rules?key=${key}`,{headers, data: {tag}});
+        console.log('removeRule', data);
+        return data;
+    },
     removeAllRules: async ({ endpoint, key }) => await VKStreamingAPI.flushRules(endpoint, key),
     postRule: async ({ endpoint, key , rule}) => await VKStreamingAPI
         .postRule(...Object.entries({ endpoint, key , rule }).map(([key, value]) => {
@@ -76,19 +90,20 @@ export const router = () => {
         const { rule } = body;
 
         console.log({ limit, offset, service_token, endpoint, key, rule });
-
-        if (first === 'backend') {
-            if (Router[second]) {
-                return ctx.body = await Router[second]({
-                    limit: Number(limit),
-                    offset: Number(offset),
-                    service_token, endpoint, key, rule
-                });
-                // console.log('ctx.body');
-                // console.log(ctx.body);
+        try {
+            if (first === 'backend') {
+                if (Router[second]) {
+                    return ctx.body = await Router[second]({
+                        limit: Number(limit),
+                        offset: Number(offset),
+                        service_token, endpoint, key, rule
+                    });
+                }
             }
+        } catch (e) {
+            console.log(e);
+            return new CustomError({ numberOfError: 1 }).ersponse(ctx)
         }
-
 
         return new CustomError({ numberOfError: 1 }).ersponse(ctx)
 
