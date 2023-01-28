@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import {
-    Avatar,
     Button,
     Card,
     CardScroll,
@@ -206,7 +205,7 @@ const Dashboard = () => {
         {(fetchedEvents && fetchedEvents.length) ? <Group>
             {fetchedEvents.map((item) => <>
                 <Cell
-                before={<Avatar height={80} width={80}><Counter>{item.id}</Counter></Avatar>}
+                before={<Counter className={styles.counter} size={'m'}>{item.id}</Counter>}
                 disabled multiline key={item.id}>
                     <Title level={'3'}>{item.event.event.event_type}</Title>
                     <br/>

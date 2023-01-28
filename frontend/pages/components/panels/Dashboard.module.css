@@ -8,3 +8,9 @@
     margin-left: 10px;
     margin-right: 10px;
 }
+
+.counter {
+    margin: 10px;
+    padding: 10px;
+    min-width: 100px;
+}
