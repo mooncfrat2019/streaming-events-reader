@@ -38,6 +38,7 @@ const Dashboard = () => {
     const [token, setToken] = useState('');
     const [cred, setCred] = useState<AuthResult>({ endpoint: '', key: '' });
     const [rules, setRules] = useState<Rule[]|null>(null);
+    const [rulesRendered, setRulesRendered] = useState<any>(null);
     const [needRulesUpdate, setNeedRulesUpdate] = useState<boolean>(false);
     const [newRule, setNewRule] = useState<Rule>({ tag: 'vk', value: 'vk' });
     const [currentOffset, setCurrentOffset] = useState(0);
@@ -45,6 +46,34 @@ const Dashboard = () => {
     const [fetchedEvents, setFetchedEvents] = useState<Array<any>|null>(null)
     const { host } = new Utils;
     const url = host();
+
+    useEffect(() => {
+        console.log('rules', rules);
+        if (rules && Array.isArray(rules) && rules.length) {
+            setRulesRendered(<React.Fragment>
+                <Header mode={'secondary'}>
+                    Правила
+                </Header>
+                {(rules && rules.length) ? rules.map((rule) => {
+                    return <Cell
+                        disabled={true}
+                        after={<IconButton onClick={() => removeRule({ ...cred, tag: rule.tag})}>
+                            <Icon24CancelOutline/>
+                        </IconButton>}
+                        before={<a
+                            className={styles.tag}>
+                            {rule.tag}
+                        </a>}>
+                        {rule.value}
+                    </Cell>
+                }) : null}
+            </React.Fragment> )
+        } else {
+            setRulesRendered(<Placeholder icon={<Icon56MoonOutline/>}>
+                    Нет текущих правил для сбора событий
+                </Placeholder>);
+        }
+    }, [rules])
 
     const headers = {
         'Content-Type': 'application/json',
@@ -114,6 +143,8 @@ const Dashboard = () => {
                     if (response?.rules) {
                         console.log('response?.rules', response?.rules);
                         setRules(response.rules);
+                    } else {
+                        setRules(null);
                     }
                 })
                 .catch((e) => {
@@ -160,28 +191,7 @@ const Dashboard = () => {
             <Header>
                 Текущее состояние
             </Header>
-            {((rules && Array.isArray(rules) && rules.length)) ?
-                <React.Fragment>
-                    <Header mode={'secondary'}>
-                        Правила
-                    </Header>
-                    {(rules && rules.length) ? rules.map((rule) => {
-                        return <Cell
-                            disabled={true}
-                            after={<IconButton onClick={() => removeRule({ ...cred, tag: rule.tag})}>
-                                <Icon24CancelOutline/>
-                            </IconButton>}
-                            before={<a
-                                className={styles.tag}>
-                                {rule.tag}
-                        </a>}>
-                            {rule.value}
-                        </Cell>
-                    }) : null}
-                </React.Fragment> : <Placeholder icon={<Icon56MoonOutline/>}>
-                    Нет текущих правил для сбора событий
-                </Placeholder>
-            }
+            {rulesRendered}
         </Group>
         <Group>
             <Header>
@@ -196,7 +206,7 @@ const Dashboard = () => {
         {(fetchedEvents && fetchedEvents.length) ? <Group>
             {fetchedEvents.map((item) => <>
                 <Cell
-                before={<Avatar><Counter>{item.id}</Counter></Avatar>}
+                before={<Avatar height={80} width={80}><Counter>{item.id}</Counter></Avatar>}
                 disabled multiline key={item.id}>
                     <Title level={'3'}>{item.event.event.event_type}</Title>
                     <br/>
