@@ -5,7 +5,7 @@ import {Utils} from "./utils";
 import {CustomError} from "./errors";
 import {DATA} from "./db";
 // @ts-ignore
-import { VKStreamingAPI } from 'vkflow';
+import {VKStreamingAPI} from 'vkflow';
 import {config} from "./config";
 
 export interface Rule { tag: string, value: string }
@@ -47,6 +47,9 @@ interface StreamingEvent {
 
 const Router: Router = {
     test: () => "test",
+    removeRecord: async ({ recordId }: { recordId: number }) => {
+        return await DATA.destroy({where: {id: recordId}})
+    },
     getAllEvents: async ({ limit, offset }: { limit: number, offset: number }) => {
         const evnets = await DATA.findAll({ limit, offset });
         // @ts-ignore
@@ -83,18 +86,18 @@ export const router = () => {
     App.use(async (ctx) => {
         const { path } = Utils;
         const [first, second] = path(ctx.request.path);
-        const { limit, offset, service_token, endpoint, key, tag } = ctx.request.query;
+        const { limit, offset, service_token, endpoint, key, tag, recordId } = ctx.request.query;
         const body = (ctx.request?.body) ? ctx.request.body : {};
         const { rule } = body;
 
-        console.log({ limit, offset, service_token, endpoint, key, rule, tag });
+        console.log({ limit, offset, service_token, endpoint, key, rule, tag, recordId });
         try {
             if (first === 'backend') {
                 if (Router[second]) {
                     return ctx.body = await Router[second]({
                         limit: Number(limit),
                         offset: Number(offset),
-                        service_token, endpoint, key, rule, tag
+                        service_token, endpoint, key, rule, tag, recordId
                     });
                 }
             }

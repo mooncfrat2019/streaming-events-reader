@@ -3,7 +3,7 @@ import {
     Button,
     Card,
     CardScroll,
-    Cell,
+    Cell, CellButton,
     Counter,
     FormItem,
     FormLayout,
@@ -26,9 +26,13 @@ import {Interweave} from "interweave";
 
 type getRulesFunc = (props: AuthResult) => Promise<Rules>
 type removeRuleFunc = (props: DeleteRuleProps) => Promise<Rules>
+type removeRecordFunc = (props: DeleteRecordProps) => Promise<number|string>
 
 interface DeleteRuleProps extends AuthResult {
     tag: string
+}
+interface DeleteRecordProps {
+    recordId: number
 }
 
 const Dashboard = () => {
@@ -39,6 +43,7 @@ const Dashboard = () => {
     const [rules, setRules] = useState<Rule[]|null>(null);
     const [rulesRendered, setRulesRendered] = useState<any>(null);
     const [needRulesUpdate, setNeedRulesUpdate] = useState<boolean>(false);
+    const [needUpdateEvents, setNeedUpdateEvents] = useState<boolean>(true);
     const [newRule, setNewRule] = useState<Rule>({ tag: 'vk', value: 'vk' });
     const [currentOffset, setCurrentOffset] = useState(0);
     const [currentLimit] = useState(100);
@@ -102,20 +107,30 @@ const Dashboard = () => {
         return data;
     }
 
+    const removeRecord: removeRecordFunc = async ({ recordId }) => {
+        const { data } = await axios.get(`${url}/backend/removeRecord?recordId=${recordId}`);
+        console.log('removeRecord', data);
+        setNeedUpdateEvents(true);
+        return data;
+    }
+
     const getAllEvents: EventsGetter = async ({ limit, offset }) => {
         const { data } = await axios.get(`${url}/backend/getAllEvents?limit=${limit}&offset=${offset}`);
         return data;
     }
 
     useEffect(() => {
-        getAllEvents({ limit: 100, offset: currentOffset })
-            .then((data) => {
-                setFetchedEvents(data);
-            })
-            .catch((e) => {
-                console.error(e);
-            })
-    }, [currentOffset])
+        if (needUpdateEvents) {
+            getAllEvents({ limit: 100, offset: currentOffset })
+                .then((data) => {
+                    setFetchedEvents(data);
+                    setNeedUpdateEvents(false);
+                })
+                .catch((e) => {
+                    console.error(e);
+                })
+        }
+    }, [currentOffset, needUpdateEvents])
 
     useEffect(() => {
         console.log('host', host());
@@ -206,6 +221,9 @@ const Dashboard = () => {
             {fetchedEvents.map((item) => <>
                 <Cell
                 before={<Counter className={styles.counter} size={'m'}>{item.id}</Counter>}
+                after={<CellButton onClick={() => removeRecord({ recordId: item.id })}>
+                    <Icon24CancelOutline/>
+                </CellButton>}
                 disabled multiline key={item.id}>
                     <Title level={'3'}>{item.event.event.event_type}</Title>
                     <br/>
